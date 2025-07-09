@@ -66,7 +66,7 @@ export default function ApiKeyTest() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: 'Test webhook from NewsHub!',
+          searchQuery: 'test webhook',
           timestamp: new Date().toISOString()
         })
       });

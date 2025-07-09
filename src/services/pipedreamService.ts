@@ -17,8 +17,7 @@ export class PipedreamService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: 'Web search triggered!',
-          query: query,
+          searchQuery: query,
           timestamp: new Date().toISOString()
         })
       });
