@@ -26,7 +26,18 @@ export class PipedreamService {
         throw new Error(`Pipedream request failed: ${response.status} - ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const responseText = await response.text();
+      console.log('Pipedream raw response:', responseText);
+      
+      // Try to parse as JSON, but fall back to text if it fails
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        // If it's not JSON, treat the text response as the data
+        data = { message: responseText };
+      }
+      
       console.log('Pipedream response:', data);
 
       return {
