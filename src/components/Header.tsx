@@ -78,13 +78,13 @@ export default function Header({
                     className={`absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1 px-2 py-1 text-xs rounded transition-colors ${
                       isFetching
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
                     }`}
-                    title="Search fresh articles from BBC"
+                    title="Trigger Pipedream webhook"
                   >
                     <Globe className="w-3 h-3" />
                     <span>
-                      {isFetching ? 'Searching...' : 'Web Search'}
+                      {isFetching ? 'Triggering...' : 'Webhook'}
                     </span>
                   </button>
                 )}

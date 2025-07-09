@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Article, Category } from '../types/news';
 import { NewsService } from '../services/newsService';
-import { NewsApiService } from '../services/newsApiService';
+import { PipedreamService } from '../services/pipedreamService';
 import { ArticleStorageService } from '../services/articleStorageService';
 import { useAuth } from './useAuth';
 import { AuthService } from '../services/authService';
@@ -93,39 +93,26 @@ export function useNews() {
       setFetchingFromWeb(true);
       setError(null);
       
-      console.log('Starting web fetch for query:', query);
+      console.log('Triggering Pipedream webhook for query:', query);
       
-      // Fetch from News API
-      const newsApiArticles = await NewsApiService.searchArticles(query);
+      // Trigger Pipedream webhook
+      const result = await PipedreamService.triggerWebSearch(query);
       
-      console.log('Received articles from News API:', newsApiArticles.length);
-      
-      if (newsApiArticles.length === 0) {
-        setError('No articles found from BBC for this search. Try different keywords or check back later.');
+      if (!result.success) {
+        setError(`Webhook failed: ${result.message}`);
         return;
       }
       
-      // Store articles in database
-      const storedArticles = await ArticleStorageService.storeNewsApiArticles(newsApiArticles);
+      // Show success message
+      setError(null);
+      console.log('Webhook triggered successfully:', result.data);
       
-      console.log('Successfully stored articles:', storedArticles.length);
+      // You can add logic here to handle the webhook response
+      // For example, refresh articles or show a success message
       
-      if (storedArticles.length > 0) {
-        // Update articles with bookmarks
-        const articlesWithBookmarks = storedArticles.map(article => ({
-          ...article,
-          isBookmarked: bookmarkedIds.has(article.id)
-        }));
-        
-        // Prepend new articles to existing ones
-        setArticles(prev => [...articlesWithBookmarks, ...prev]);
-        setError(null);
-      } else {
-        setError('No new articles were added. They may already exist in the database.');
-      }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch articles from web';
-      console.error('Web fetch error:', errorMessage);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to trigger webhook';
+      console.error('Webhook error:', errorMessage);
       setError(errorMessage);
     } finally {
       setFetchingFromWeb(false);
