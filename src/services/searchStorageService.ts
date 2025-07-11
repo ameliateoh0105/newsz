@@ -74,8 +74,8 @@ export class SearchStorageService {
 
   private static generateSearchId(article: RapidApiArticle): string {
     // Create a unique ID based on URL and title
-    const urlHash = btoa(article.url).replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
-    const titleHash = btoa(article.title).replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
+    const urlHash = encodeURIComponent(article.url).replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
+    const titleHash = encodeURIComponent(article.title).replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
     return `search_${urlHash}_${titleHash}`;
   }
 
@@ -94,7 +94,7 @@ export class SearchStorageService {
           .from('articles')
           .select('id')
           .eq('id', articleId)
-          .single();
+          .maybeSingle();
 
         if (existingArticle) {
           console.log(`Article already exists: ${apiArticle.title}`);
@@ -127,7 +127,7 @@ export class SearchStorageService {
           category: category,
           readTime: readTime,
           url: apiArticle.url,
-          searchedAt: searchedAt
+          "searchedAt": searchedAt
         };
 
         // Insert article into database
@@ -176,8 +176,8 @@ export class SearchStorageService {
     const { data, error } = await supabase
       .from('articles')
       .select('*')
-      .not('searchedAt', 'is', null)
-      .order('searchedAt', { ascending: false })
+      .not('"searchedAt"', 'is', null)
+      .order('"searchedAt"', { ascending: false })
       .limit(limit);
 
     if (error) {
