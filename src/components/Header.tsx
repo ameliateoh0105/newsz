@@ -6,6 +6,7 @@ import AuthModal from './AuthModal';
 interface HeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  onSearchFocus?: (query: string) => void;
   showBookmarks: boolean;
   onToggleBookmarks: () => void;
   onFetchFromWeb?: (query: string) => void;
@@ -15,6 +16,7 @@ interface HeaderProps {
 export default function Header({ 
   searchQuery, 
   onSearchChange, 
+  onSearchFocus,
   showBookmarks, 
   onToggleBookmarks,
   onFetchFromWeb,
@@ -68,6 +70,7 @@ export default function Header({
                     placeholder="Search articles..."
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
+                    onFocus={() => onSearchFocus?.(searchQuery)}
                     className={`pl-10 ${searchQuery.trim() ? 'pr-24' : 'pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64 sm:w-80`}
                   />
                 

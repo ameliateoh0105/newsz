@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
+import SearchPage from './components/SearchPage';
 import CategoryTabs from './components/CategoryTabs';
 import ArticleCard from './components/ArticleCard';
 import ArticleModal from './components/ArticleModal';
@@ -27,6 +28,8 @@ function App() {
 
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [showBookmarks, setShowBookmarks] = useState(false);
+  const [showSearchPage, setShowSearchPage] = useState(false);
+  const [searchPageQuery, setSearchPageQuery] = useState('');
 
   const displayArticles = showBookmarks ? bookmarkedArticles : articles;
 
@@ -52,11 +55,34 @@ function App() {
     }
   };
 
+  const handleSearchPageOpen = (query: string = '') => {
+    setSearchPageQuery(query);
+    setShowSearchPage(true);
+  };
+
+  const handleSearchPageClose = () => {
+    setShowSearchPage(false);
+    setSearchPageQuery('');
+  };
+
+  // Show search page if requested
+  if (showSearchPage) {
+    return (
+      <SearchPage
+        initialQuery={searchPageQuery}
+        onBack={handleSearchPageClose}
+        onBookmarkToggle={handleBookmarkToggle}
+        onArticleClick={handleArticleClick}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onSearchFocus={handleSearchPageOpen}
         showBookmarks={showBookmarks}
         onToggleBookmarks={() => setShowBookmarks(!showBookmarks)}
         onFetchFromWeb={fetchFromWeb}

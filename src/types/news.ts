@@ -12,6 +12,7 @@ export interface Article {
   url?: string;
   isBookmarked?: boolean;
   isExternal?: boolean; // Add flag to distinguish external articles
+  searchedAt?: string;
 }
 
 export type Category = 'business' | 'technology' | 'politics' | 'sports' | 'health' | 'entertainment';
@@ -22,4 +23,18 @@ export interface NewsSource {
   description: string;
   url: string;
   category: Category;
+}
+
+export interface SearchSource {
+  id: string;
+  name: string;
+  domain: string;
+  selected: boolean;
+}
+
+export interface RecentSearch {
+  id: string;
+  query: string;
+  timestamp: string;
+  sources: string[];
 }
