@@ -74,9 +74,10 @@ export class SearchStorageService {
 
   private static generateSearchId(article: RapidApiArticle): string {
     // Create a unique ID based on URL and title
-    const urlHash = encodeURIComponent(article.url).replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
-    const titleHash = encodeURIComponent(article.title).replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
-    return `search_${urlHash}_${titleHash}`;
+    // Use a simpler approach to avoid encoding issues
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 8);
+    return `search_${timestamp}_${random}`;
   }
 
   static async storeSearchResults(articles: RapidApiArticle[], searchQuery: string): Promise<Article[]> {
@@ -90,13 +91,17 @@ export class SearchStorageService {
         const articleId = this.generateSearchId(apiArticle);
         
         // Check if article already exists
-        const { data: existingArticle } = await supabase
+        const { data: existingArticle, error: checkError } = await supabase
           .from('articles')
           .select('id')
-          .eq('id', articleId)
-          .maybeSingle();
+          .eq('url', apiArticle.url)
+          .limit(1);
 
-        if (existingArticle) {
+        if (checkError) {
+          console.error('Error checking for existing article:', checkError);
+        }
+
+        if (existingArticle && existingArticle.length > 0) {
           console.log(`Article already exists: ${apiArticle.title}`);
           continue;
         }
@@ -127,8 +132,14 @@ export class SearchStorageService {
           category: category,
           readTime: readTime,
           url: apiArticle.url,
-          "searchedAt": searchedAt
+          searchedAt: searchedAt
         };
+
+        console.log('Attempting to insert article:', {
+          id: articleData.id,
+          title: articleData.title,
+          url: articleData.url
+        });
 
         // Insert article into database
         const { data: insertedArticle, error } = await supabase
@@ -138,8 +149,8 @@ export class SearchStorageService {
           .single();
 
         if (error) {
-          console.error('Failed to store article:', error);
-          console.error('Article data:', articleData);
+          console.error('Failed to store article:', error.message);
+          console.error('Error details:', error);
           continue;
         }
 
@@ -176,8 +187,8 @@ export class SearchStorageService {
     const { data, error } = await supabase
       .from('articles')
       .select('*')
-      .not('"searchedAt"', 'is', null)
-      .order('"searchedAt"', { ascending: false })
+      .not('searchedAt', 'is', null)
+      .order('searchedAt', { ascending: false })
       .limit(limit);
 
     if (error) {
