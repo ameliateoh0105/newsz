@@ -82,9 +82,13 @@ export default function SearchPage({ initialQuery = '', onBack, onBookmarkToggle
       const sourceNames = selectedSources.map(s => s.name);
       const articles = await RapidApiService.searchArticles(searchQuery, sourceNames);
       
+      console.log(`RapidAPI returned ${articles.length} articles`);
+      
       if (articles.length > 0) {
         // Store articles in database
         const storedArticles = await SearchStorageService.storeSearchResults(articles, searchQuery);
+        
+        console.log(`Successfully stored ${storedArticles.length} articles in database`);
         
         // Add to recent searches
         RecentSearchService.addRecentSearch(searchQuery, sourceNames);
@@ -96,6 +100,8 @@ export default function SearchPage({ initialQuery = '', onBack, onBookmarkToggle
         console.log(`Search completed: ${storedArticles.length} articles stored`);
       } else {
         console.log('No articles found for the search query');
+        // Still add to recent searches even if no results
+        RecentSearchService.addRecentSearch(searchQuery, sourceNames);
       }
     } catch (error) {
       console.error('Search failed:', error);
