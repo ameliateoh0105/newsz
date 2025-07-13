@@ -87,9 +87,6 @@ export default function ArticleModal({ article, isOpen, onClose, onBookmarkToggl
               <span className="font-semibold text-gray-900">{article.source}</span>
               <span className="text-gray-500">by {article.author}</span>
             </div>
-            <div className="text-sm text-gray-500">
-              {formatDate(article.publishedAt)}
-            </div>
           </div>
           
           <div className="prose prose-lg max-w-none">

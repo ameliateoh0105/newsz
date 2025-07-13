@@ -95,7 +95,6 @@ export default function ArticleCard({ article, onBookmarkToggle, onClick }: Arti
                 <Clock className="w-4 h-4" />
                 <span>{article.readTime} min</span>
               </div>
-              <span>{formatDate(article.publishedAt)}</span>
             </div>
           </div>
         </div>
