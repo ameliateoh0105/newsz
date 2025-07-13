@@ -18,7 +18,7 @@ interface TopHeadlinesResponse {
   data: TopHeadlineArticle[];
 }
 
-export type Country = 'US' | 'HK' | 'CN';
+export type Country = 'US' | 'CN';
 
 export interface ProcessedHeadline {
   id: string;
@@ -170,29 +170,25 @@ export class TopHeadlinesService {
 
   static async fetchAllTopHeadlines(): Promise<{
     US: ProcessedHeadline[];
-    HK: ProcessedHeadline[];
     CN: ProcessedHeadline[];
   }> {
     console.log('Fetching top headlines for all countries...');
     
     try {
-      // Fetch headlines for all countries in parallel
-      const [usHeadlines, hkHeadlines, cnHeadlines] = await Promise.all([
+      // Fetch headlines for US and China in parallel
+      const [usHeadlines, cnHeadlines] = await Promise.all([
         this.fetchTopHeadlines('US'),
-        this.fetchTopHeadlines('HK'),
         this.fetchTopHeadlines('CN')
       ]);
 
       return {
         US: usHeadlines,
-        HK: hkHeadlines,
         CN: cnHeadlines
       };
     } catch (error) {
       console.error('Error fetching all top headlines:', error);
       return {
         US: [],
-        HK: [],
         CN: []
       };
     }

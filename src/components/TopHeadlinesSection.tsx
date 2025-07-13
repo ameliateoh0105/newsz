@@ -14,13 +14,11 @@ interface TopHeadlinesSectionProps {
 
 const countryNames = {
   US: 'United States',
-  HK: 'Hong Kong',
   CN: 'China'
 };
 
 const countryFlags = {
   US: '🇺🇸',
-  HK: '🇭🇰',
   CN: '🇨🇳'
 };
 
@@ -108,8 +106,17 @@ export default function TopHeadlinesSection({ onBookmarkToggle, onArticleClick }
         <LoadingSpinner />
       ) : error ? (
         <ErrorMessage message={error} />
+      ) : getTotalHeadlinesCount() === 0 ? (
+        <div className="text-center py-8">
+          <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Top Headlines Available</h3>
+          <p className="text-gray-600">
+            Unable to fetch headlines at the moment. Please try again later.
+          </p>
+        </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           {(Object.keys(countryNames) as Country[]).map((country) => {
             const countryHeadlines = getHeadlinesByCountry(country);
             

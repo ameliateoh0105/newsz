@@ -4,11 +4,9 @@ import { TopHeadlinesService, ProcessedHeadline, Country } from '../services/top
 export function useTopHeadlines() {
   const [headlines, setHeadlines] = useState<{
     US: ProcessedHeadline[];
-    HK: ProcessedHeadline[];
     CN: ProcessedHeadline[];
   }>({
     US: [],
-    HK: [],
     CN: []
   });
   
@@ -26,7 +24,6 @@ export function useTopHeadlines() {
         
         console.log('Headlines fetched:', {
           US: allHeadlines.US.length,
-          HK: allHeadlines.HK.length,
           CN: allHeadlines.CN.length
         });
         
@@ -49,7 +46,7 @@ export function useTopHeadlines() {
   };
 
   const getTotalHeadlinesCount = (): number => {
-    return headlines.US.length + headlines.HK.length + headlines.CN.length;
+    return headlines.US.length + headlines.CN.length;
   };
 
   return {
