@@ -116,48 +116,49 @@ export default function TopHeadlinesSection({ onBookmarkToggle, onArticleClick }
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-3">
-        <div className="grid gap-4 md:grid-cols-2">
-          {(Object.keys(countryNames) as Country[]).map((country) => {
-            const countryHeadlines = getHeadlinesByCountry(country);
-            
-            return (
-              <button
-                key={country}
-                onClick={() => setSelectedCountry(country)}
-                className="p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all text-left group"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-3xl">{countryFlags[country]}</span>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">
-                        {countryNames[country]}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {countryHeadlines.length} headlines
-                      </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            {(Object.keys(countryNames) as Country[]).map((country) => {
+              const countryHeadlines = getHeadlinesByCountry(country);
+              
+              return (
+                <button
+                  key={country}
+                  onClick={() => setSelectedCountry(country)}
+                  className="p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all text-left group"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-3xl">{countryFlags[country]}</span>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">
+                          {countryNames[country]}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {countryHeadlines.length} headlines
+                        </p>
+                      </div>
                     </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
-                </div>
-                
-                {countryHeadlines.length > 0 && (
-                  <div className="space-y-2">
-                    {countryHeadlines.slice(0, 2).map((headline) => (
-                      <div key={headline.id} className="text-sm text-gray-600 line-clamp-1">
-                        • {headline.title}
-                      </div>
-                    ))}
-                    {countryHeadlines.length > 2 && (
-                      <div className="text-xs text-gray-500">
-                        +{countryHeadlines.length - 2} more articles
-                      </div>
-                    )}
-                  </div>
-                )}
-              </button>
-            );
-          })}
+                  
+                  {countryHeadlines.length > 0 && (
+                    <div className="space-y-2">
+                      {countryHeadlines.slice(0, 2).map((headline) => (
+                        <div key={headline.id} className="text-sm text-gray-600 line-clamp-1">
+                          • {headline.title}
+                        </div>
+                      ))}
+                      {countryHeadlines.length > 2 && (
+                        <div className="text-xs text-gray-500">
+                          +{countryHeadlines.length - 2} more articles
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
