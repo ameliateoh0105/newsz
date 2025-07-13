@@ -7,6 +7,7 @@ import ArticleModal from './components/ArticleModal';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import EmptyState from './components/EmptyState';
+import TopHeadlinesSection from './components/TopHeadlinesSection';
 import ApiKeyTest from './components/ApiKeyTest';
 import { useNews } from './hooks/useNews';
 import { Article } from './types/news';
@@ -97,6 +98,15 @@ function App() {
       )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {!showBookmarks && (
+          <div className="mb-8">
+            <TopHeadlinesSection
+              onBookmarkToggle={handleBookmarkToggle}
+              onArticleClick={handleArticleClick}
+            />
+          </div>
+        )}
+
         {showBookmarks && (
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Bookmarks</h2>
