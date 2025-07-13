@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Globe, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Globe, ArrowLeft } from 'lucide-react';
 import { useTopHeadlines } from '../hooks/useTopHeadlines';
-import { Country } from '../services/topHeadlinesService';
 import ArticleCard from './ArticleCard';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
@@ -12,25 +11,15 @@ interface TopHeadlinesSectionProps {
   onArticleClick: (article: Article) => void;
 }
 
-const countryNames = {
-  US: 'United States',
-  CN: 'China'
-};
-
-const countryFlags = {
-  US: '🇺🇸',
-  CN: '🇨🇳'
-};
-
 export default function TopHeadlinesSection({ onBookmarkToggle, onArticleClick }: TopHeadlinesSectionProps) {
-  const { headlines, loading, error, getHeadlinesByCountry, getTotalHeadlinesCount } = useTopHeadlines();
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+  const { headlines, loading, error, getTotalHeadlinesCount } = useTopHeadlines();
+  const [showAllHeadlines, setShowAllHeadlines] = useState(false);
 
   // Convert ProcessedHeadline to Article for compatibility
   const convertToArticle = (headline: any): Article => ({
     id: headline.id,
     title: headline.title,
-    summary: headline.summary,
+    summary: headline.excerpt,
     content: headline.content,
     author: headline.author,
     source: headline.source,
@@ -42,39 +31,37 @@ export default function TopHeadlinesSection({ onBookmarkToggle, onArticleClick }
     isBookmarked: false
   });
 
-  if (selectedCountry) {
-    const countryHeadlines = getHeadlinesByCountry(selectedCountry);
-    
+  if (showAllHeadlines) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => setSelectedCountry(null)}
+              onClick={() => setShowAllHeadlines(false)}
               className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center space-x-2">
-              <span className="text-2xl">{countryFlags[selectedCountry]}</span>
+              <Globe className="w-6 h-6 text-blue-600" />
               <h3 className="text-xl font-bold text-gray-900">
-                {countryNames[selectedCountry]} Top Headlines
+                Top Headlines
               </h3>
             </div>
           </div>
           <span className="text-sm text-gray-500">
-            {countryHeadlines.length} articles
+            {headlines.length} articles
           </span>
         </div>
 
-        {countryHeadlines.length === 0 ? (
+        {headlines.length === 0 ? (
           <div className="text-center py-8">
             <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No headlines available for {countryNames[selectedCountry]}</p>
+            <p className="text-gray-600">No headlines available</p>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {countryHeadlines.map((headline) => (
+            {headlines.map((headline) => (
               <ArticleCard
                 key={headline.id}
                 article={convertToArticle(headline)}
@@ -97,7 +84,7 @@ export default function TopHeadlinesSection({ onBookmarkToggle, onArticleClick }
         <div>
           <h2 className="text-xl font-bold text-gray-900">Top Headlines</h2>
           <p className="text-sm text-gray-500">
-            {loading ? 'Loading...' : `${getTotalHeadlinesCount()} articles from 3 countries`}
+            {loading ? 'Loading...' : `${getTotalHeadlinesCount()} global headlines`}
           </p>
         </div>
       </div>
@@ -115,50 +102,40 @@ export default function TopHeadlinesSection({ onBookmarkToggle, onArticleClick }
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="grid gap-4 md:grid-cols-2">
-            {(Object.keys(countryNames) as Country[]).map((country) => {
-              const countryHeadlines = getHeadlinesByCountry(country);
-              
-              return (
-                <button
-                  key={country}
-                  onClick={() => setSelectedCountry(country)}
-                  className="p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all text-left group"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-3xl">{countryFlags[country]}</span>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">
-                          {countryNames[country]}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          {countryHeadlines.length} headlines
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
+        <div className="space-y-4">
+          <button
+            onClick={() => setShowAllHeadlines(true)}
+            className="w-full p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all text-left group"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <Globe className="w-8 h-8 text-blue-600" />
+                <div>
+                  <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">
+                    Global Top Headlines
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {headlines.length} latest headlines
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {headlines.length > 0 && (
+              <div className="space-y-2">
+                {headlines.slice(0, 3).map((headline) => (
+                  <div key={headline.id} className="text-sm text-gray-600 line-clamp-1">
+                    • {headline.title}
                   </div>
-                  
-                  {countryHeadlines.length > 0 && (
-                    <div className="space-y-2">
-                      {countryHeadlines.slice(0, 2).map((headline) => (
-                        <div key={headline.id} className="text-sm text-gray-600 line-clamp-1">
-                          • {headline.title}
-                        </div>
-                      ))}
-                      {countryHeadlines.length > 2 && (
-                        <div className="text-xs text-gray-500">
-                          +{countryHeadlines.length - 2} more articles
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                ))}
+                {headlines.length > 3 && (
+                  <div className="text-xs text-gray-500">
+                    +{headlines.length - 3} more articles
+                  </div>
+                )}
+              </div>
+            )}
+          </button>
         </div>
       )}
     </div>

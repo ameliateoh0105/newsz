@@ -1,6 +1,6 @@
 interface TopHeadlineArticle {
   title: string;
-  snippet: string;
+  excerpt: string;
   publisher: string;
   timestamp: string;
   newsUrl: string;
@@ -18,12 +18,10 @@ interface TopHeadlinesResponse {
   data: TopHeadlineArticle[];
 }
 
-export type Country = 'US' | 'CN';
-
 export interface ProcessedHeadline {
   id: string;
   title: string;
-  summary: string;
+  excerpt: string;
   content: string;
   author: string;
   source: string;
@@ -32,7 +30,6 @@ export interface ProcessedHeadline {
   category: string;
   readTime: number;
   url: string;
-  country: Country;
   fetchedAt: string;
 }
 
@@ -40,8 +37,8 @@ export class TopHeadlinesService {
   private static readonly API_KEY = '6582fb3a6emshb967ad3b5c73525p132333jsn5b5ade348156';
   private static readonly BASE_URL = 'https://real-time-news-data.p.rapidapi.com/top-headlines';
 
-  private static categorizeHeadline(title: string, snippet: string): string {
-    const text = `${title} ${snippet}`.toLowerCase();
+  private static categorizeHeadline(title: string, excerpt: string): string {
+    const text = `${title} ${excerpt}`.toLowerCase();
     
     // Business keywords
     if (text.match(/\b(business|finance|economy|market|stock|investment|bank|corporate|revenue|profit|trade|commerce|economic|financial|money|dollar|currency)\b/)) {
@@ -83,20 +80,20 @@ export class TopHeadlinesService {
     return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
   }
 
-  private static generateHeadlineId(article: TopHeadlineArticle, country: Country): string {
+  private static generateHeadlineId(article: TopHeadlineArticle): string {
+    // Create a unique ID based on URL and title to avoid duplicates
+    const urlPart = encodeURIComponent(article.newsUrl).substring(0, 20);
+    const titlePart = encodeURIComponent(article.title).substring(0, 20);
     const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substring(2, 8);
-    const countryCode = country.toLowerCase();
-    return `headline_${countryCode}_${timestamp}_${random}`;
+    return `headline_${urlPart}_${titlePart}_${timestamp}`;
   }
 
-  static async fetchTopHeadlines(country: Country): Promise<ProcessedHeadline[]> {
-    console.log(`Fetching top headlines for ${country}`);
+  static async fetchTopHeadlines(): Promise<ProcessedHeadline[]> {
+    console.log('Fetching global top headlines...');
     
     try {
       const params = new URLSearchParams({
         limit: '500',
-        country: country,
         lang: 'en'
       });
 
@@ -109,16 +106,16 @@ export class TopHeadlinesService {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch headlines for ${country}: ${response.status}`);
+        throw new Error(`Failed to fetch headlines: ${response.status}`);
       }
 
       const data: TopHeadlinesResponse = await response.json();
       
       if (data.status !== 'OK' || !data.data) {
-        throw new Error(`Invalid response for ${country}: ${data.status}`);
+        throw new Error(`Invalid response: ${data.status}`);
       }
 
-      console.log(`Found ${data.data.length} headlines for ${country}`);
+      console.log(`Found ${data.data.length} global headlines`);
 
       const processedHeadlines: ProcessedHeadline[] = [];
       const fetchedAt = new Date().toISOString();
@@ -129,8 +126,8 @@ export class TopHeadlinesService {
             continue; // Skip articles without essential data
           }
 
-          const category = this.categorizeHeadline(article.title, article.snippet || '');
-          const content = article.snippet || article.title;
+          const category = this.categorizeHeadline(article.title, article.excerpt || '');
+          const content = article.excerpt || article.title;
           const readTime = this.estimateReadTime(content);
           
           // Use thumbnail or default image
@@ -139,9 +136,9 @@ export class TopHeadlinesService {
                           'https://images.pexels.com/photos/518543/pexels-photo-518543.jpeg?auto=compress&cs=tinysrgb&w=800';
 
           const processedHeadline: ProcessedHeadline = {
-            id: this.generateHeadlineId(article, country),
+            id: this.generateHeadlineId(article),
             title: article.title,
-            summary: article.snippet || content.substring(0, 200) + '...',
+            excerpt: article.excerpt || content.substring(0, 200) + '...',
             content: content,
             author: 'News Reporter',
             source: article.publisher || 'Unknown Source',
@@ -150,7 +147,6 @@ export class TopHeadlinesService {
             category: category,
             readTime: readTime,
             url: article.newsUrl,
-            country: country,
             fetchedAt: fetchedAt
           };
 
@@ -160,37 +156,11 @@ export class TopHeadlinesService {
         }
       }
 
-      console.log(`Successfully processed ${processedHeadlines.length} headlines for ${country}`);
+      console.log(`Successfully processed ${processedHeadlines.length} headlines`);
       return processedHeadlines;
     } catch (error) {
-      console.error(`Error fetching headlines for ${country}:`, error);
+      console.error('Error fetching headlines:', error);
       return [];
-    }
-  }
-
-  static async fetchAllTopHeadlines(): Promise<{
-    US: ProcessedHeadline[];
-    CN: ProcessedHeadline[];
-  }> {
-    console.log('Fetching top headlines for all countries...');
-    
-    try {
-      // Fetch headlines for US and China in parallel
-      const [usHeadlines, cnHeadlines] = await Promise.all([
-        this.fetchTopHeadlines('US'),
-        this.fetchTopHeadlines('CN')
-      ]);
-
-      return {
-        US: usHeadlines,
-        CN: cnHeadlines
-      };
-    } catch (error) {
-      console.error('Error fetching all top headlines:', error);
-      return {
-        US: [],
-        CN: []
-      };
     }
   }
 }
