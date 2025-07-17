@@ -15,19 +15,25 @@ interface SearchPageProps {
 }
 
 const SEARCH_SOURCES: SearchSource[] = [
-  { id: 'bloomberg', name: 'Bloomberg', domain: 'bloomberg.com', selected: false },
   { id: 'wsj', name: 'Wall Street Journal', domain: 'wsj.com', selected: false },
+  { id: 'nyt', name: 'NY Times', domain: 'nytimes.com', selected: false },
+  { id: 'bloomberg', name: 'Bloomberg', domain: 'bloomberg.com', selected: false },
   { id: 'bbc', name: 'BBC', domain: 'bbc.com', selected: false },
-  { id: 'nyt', name: 'New York Times', domain: 'nytimes.com', selected: false },
-  { id: 'scmp', name: 'South China Morning Post', domain: 'scmp.com', selected: false },
-  { id: 'guardian', name: 'The Guardian', domain: 'theguardian.com', selected: false },
-  { id: 'fox', name: 'Fox News', domain: 'foxnews.com', selected: false },
+  { id: 'cnn', name: 'CNN', domain: 'cnn.com', selected: false },
   { id: 'reuters', name: 'Reuters', domain: 'reuters.com', selected: false },
+  { id: 'guardian', name: 'The Guardian', domain: 'theguardian.com', selected: false },
+  { id: 'washpost', name: 'Washington Post', domain: 'washingtonpost.com', selected: false },
+  { id: 'forbes', name: 'Forbes', domain: 'forbes.com', selected: false },
+  { id: 'economist', name: 'The Economist', domain: 'economist.com', selected: false },
+  { id: 'ft', name: 'Financial Times', domain: 'ft.com', selected: false },
+  { id: 'ap', name: 'Associated Press', domain: 'apnews.com', selected: false },
+  { id: 'fox', name: 'Fox News', domain: 'foxnews.com', selected: false },
 ];
 
 export default function SearchPage({ initialQuery = '', onBack, onBookmarkToggle, onArticleClick }: SearchPageProps) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [sources, setSources] = useState<SearchSource[]>(SEARCH_SOURCES);
+  const [customDomain, setCustomDomain] = useState('');
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [filteredSearches, setFilteredSearches] = useState<RecentSearch[]>([]);
   const [searchResults, setSearchResults] = useState<Article[]>([]);
@@ -63,12 +69,21 @@ export default function SearchPage({ initialQuery = '', onBack, onBookmarkToggle
     ));
   };
 
+  const handleSelectAll = () => {
+    const allSelected = sources.every(source => source.selected);
+    setSources(prev => prev.map(source => ({
+      ...source,
+      selected: !allSelected
+    })));
+  };
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
 
     const selectedSources = sources.filter(s => s.selected);
-    if (selectedSources.length === 0) {
-      alert('Please select at least one news source');
+    const hasCustomDomain = customDomain.trim();
+    
+    if (selectedSources.length === 0 && !hasCustomDomain) {
+      alert('Please select at least one news source or enter a custom domain');
       return;
     }
 
@@ -78,9 +93,14 @@ export default function SearchPage({ initialQuery = '', onBack, onBookmarkToggle
     try {
       console.log('Starting search for:', searchQuery);
       
-      // Search articles from selected sources
-      const sourceNames = selectedSources.map(s => s.name);
-      const articles = await RapidApiService.searchArticles(searchQuery, sourceNames);
+      // Prepare domains to search
+      const domains = selectedSources.map(s => s.domain);
+      if (hasCustomDomain) {
+        domains.push(customDomain.trim());
+      }
+      
+      // Search articles from selected domains
+      const articles = await RapidApiService.searchArticles(searchQuery, domains);
       
       console.log(`RapidAPI returned ${articles.length} articles`);
       
@@ -91,6 +111,10 @@ export default function SearchPage({ initialQuery = '', onBack, onBookmarkToggle
         console.log(`Successfully stored ${storedArticles.length} articles in database`);
         
         // Add to recent searches
+        const sourceNames = selectedSources.map(s => s.name);
+        if (hasCustomDomain) {
+          sourceNames.push(customDomain.trim());
+        }
         RecentSearchService.addRecentSearch(searchQuery, sourceNames);
         
         // Refresh recent searches and results
@@ -113,11 +137,24 @@ export default function SearchPage({ initialQuery = '', onBack, onBookmarkToggle
 
   const handleRecentSearchClick = (search: RecentSearch) => {
     setSearchQuery(search.query);
+    
+    // Reset all sources first
+    setSources(prev => prev.map(source => ({ ...source, selected: false })));
+    setCustomDomain('');
+    
     // Auto-select the sources from the recent search
     setSources(prev => prev.map(source => ({
       ...source,
       selected: search.sources.includes(source.name)
     })));
+    
+    // Check if there's a custom domain in the recent search
+    const knownSources = SEARCH_SOURCES.map(s => s.name);
+    const customDomains = search.sources.filter(source => !knownSources.includes(source));
+    if (customDomains.length > 0) {
+      setCustomDomain(customDomains[0]); // Use the first custom domain
+    }
+    
     setShowSources(true);
   };
 
@@ -132,6 +169,7 @@ export default function SearchPage({ initialQuery = '', onBack, onBookmarkToggle
   };
 
   const selectedSourcesCount = sources.filter(s => s.selected).length;
+  const totalSelected = selectedSourcesCount + (customDomain.trim() ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -175,7 +213,17 @@ export default function SearchPage({ initialQuery = '', onBack, onBookmarkToggle
               </button>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium text-gray-700">Predefined Sources</span>
+              <button
+                onClick={handleSelectAll}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                {sources.every(s => s.selected) ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
               {sources.map((source) => (
                 <label
                   key={source.id}
@@ -196,18 +244,34 @@ export default function SearchPage({ initialQuery = '', onBack, onBookmarkToggle
                   }`}>
                     {source.selected && <Check className="w-3 h-3 text-white" />}
                   </div>
-                  <span className="text-sm font-medium">{source.name}</span>
+                  <span className="text-xs font-medium">{source.name}</span>
                 </label>
               ))}
             </div>
             
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Custom Domain (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., techcrunch.com"
+                value={customDomain}
+                onChange={(e) => setCustomDomain(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter a domain name to search from a custom news source
+              </p>
+            </div>
+            
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">
-                {selectedSourcesCount} source{selectedSourcesCount !== 1 ? 's' : ''} selected
+                {totalSelected} source{totalSelected !== 1 ? 's' : ''} selected
               </span>
               <button
                 onClick={handleSearch}
-                disabled={isSearching || selectedSourcesCount === 0 || !searchQuery.trim()}
+                disabled={isSearching || (selectedSourcesCount === 0 && !customDomain.trim()) || !searchQuery.trim()}
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSearching ? (
