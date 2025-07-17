@@ -8,7 +8,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import EmptyState from './components/EmptyState';
 import TopHeadlinesSection from './components/TopHeadlinesSection';
-import ApiKeyTest from './components/ApiKeyTest';
+import LatestNewsSection from './components/LatestNewsSection';
 import { useNews } from './hooks/useNews';
 import { Article } from './types/news';
 
@@ -98,6 +98,10 @@ function App() {
       )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <LatestNewsSection onNewsUpdate={() => window.location.reload()} />
+        </div>
+
         {!showBookmarks && (
           <div className="mb-8">
             <TopHeadlinesSection
