@@ -7,7 +7,6 @@ import ArticleModal from './components/ArticleModal';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import EmptyState from './components/EmptyState';
-import TopHeadlinesSection from './components/TopHeadlinesSection';
 import LatestNewsSection from './components/LatestNewsSection';
 import { useNews } from './hooks/useNews';
 import { Article } from './types/news';
@@ -101,15 +100,6 @@ function App() {
         <div className="mb-8">
           <LatestNewsSection onNewsUpdate={() => window.location.reload()} />
         </div>
-
-        {!showBookmarks && (
-          <div className="mb-8">
-            <TopHeadlinesSection
-              onBookmarkToggle={handleBookmarkToggle}
-              onArticleClick={handleArticleClick}
-            />
-          </div>
-        )}
 
         {showBookmarks && (
           <div className="mb-6">
